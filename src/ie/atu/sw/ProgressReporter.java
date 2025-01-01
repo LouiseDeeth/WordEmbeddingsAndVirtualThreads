@@ -1,58 +1,53 @@
 package ie.atu.sw;
 
+/**
+ * Class for displaying and simulating a progress bar.
+ * 
+ * The progress bar
+ * 
+ * <p>
+ * Notes:
+ * </p>
+ *
+ * <p>
+ * The progress meter is designed to show the progress of the task by printing a
+ * progress bar to the console
+ * </p>
+ * <ul>
+ * <li>The progress meter will <strong>NOT work</strong> in the Eclipse console
+ * but works on Windows (DOS), Mac, and Linux terminals.</li>
+ * <li>The progress bar uses the line feed character (<code>"\r"</code>) to
+ * overwrite the current line, creating an animated effect.</li>
+ * <li>If the variable size is greater than the terminal width, a new line
+ * escape character "\n" will be automatically added and the meter won't work
+ * properly.</li>
+ * </ul>
+ * 
+ */
 public class ProgressReporter {
 
-	// You may want to include a progress meter in you assignment!
-	/*System.out.print(ConsoleColour.YELLOW); // Change the colour of the console text
-	int size = 100; // The size of the meter. 100 equates to 100%
-	for(
-	int i = 0;i<size;i++)
-	{ // The loop equates to a sequence of processing steps
-		printProgress(i + 1, size); // After each (some) steps, update the progress meter
-		Thread.sleep(10); // Slows things down so the animation is visible
-	}*/
-	
-	public static void printProgress(int progressPercentage) {
-		System.out.print(ConsoleColour.CYAN);
-	    final int width = 50; 		//Must be less than console width
-	    int progress = (int) (width * progressPercentage / 100.0);
-	    StringBuilder sb = new StringBuilder("["); 
-	    for(int i = 0; i < width; i++) {
-		    if(i < progress) {
-		    	sb.append('█');
-		    }else {
-		    	sb.append('░');  	
-		    }
-	  }
-	  sb.append("] ").append(progressPercentage).append("%");
-	  System.out.print("\r" + sb.toString());      
-	
-	  if(progressPercentage >= 100) {
-		  System.out.println();//move to new line
+	public static void simulateProgress() {
+		System.out.print(ConsoleColour.YELLOW); // Change the colour of the console text
+		int size = 100; // The size of the meter. 100 equates to 100%
+		for (int i = 0; i < size; i++) { // The loop equates to a sequence of processing steps
+			printProgress(i + 1, size); // After each (some) steps, update the progress meter
+			try {
+				Thread.sleep(10); // Slows things down so the animation is visible
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				break;
+			}
+		}
+		System.out.print(ConsoleColour.RESET); // Reset the console color
+	}
 
-	/*
-	 * Terminal Progress Meter ----------------------- You might find the progress
-	 * meter below useful. The progress effect works best if you call this method
-	 * from inside a loop and do not call System.out.println(....) until the
-	 * progress meter is finished.
+	/**
+	 * The print progress method to show progress as words are being parsed in.
 	 * 
-	 * Please note the following carefully:
-	 * 
-	 * 1) The progress meter will NOT work in the Eclipse console, but will work on
-	 * Windows (DOS), Mac and Linux terminals.
-	 * 
-	 * 2) The meter works by using the line feed character "\r" to return to the
-	 * start of the current line and writes out the updated progress over the
-	 * existing information. If you output any text between calling this method,
-	 * i.e. System.out.println(....), then the next call to the progress meter will
-	 * output the status to the next line.
-	 * 
-	 * 3) If the variable size is greater than the terminal width, a new line escape
-	 * character "\n" will be automatically added and the meter won't work properly.
-	 * 
-	 * 
+	 * @param index The current progress step
+	 * @param total The total number of steps required to complete the task
 	 */
-	/*public static void printProgress(int index, int total) {
+	public static void printProgress(int index, int total) {
 		if (index > total)
 			return; // Out of range
 		int size = 50; // Must be less than console width
@@ -60,7 +55,7 @@ public class ProgressReporter {
 		char todo = '░'; // Change to whatever you like.
 
 		// Compute basic metrics for the meter
-		int complete = (100 * index) / total;
+		int complete = (100 * index) / total; // Calculate percentage
 		int completeLen = size * complete / 100;
 
 		/*
@@ -69,21 +64,22 @@ public class ProgressReporter {
 		 * may be more efficient as the instructions can be optimized by the compiler.
 		 * Either way, the performance overhead will be marginal.
 		 */
-		/*StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder();
 		sb.append("[");
 		for (int i = 0; i < size; i++) {
 			sb.append((i < completeLen) ? done : todo);
-		}*/
+		}
+		sb.append("] ").append(complete).append("%");
 
 		/*
 		 * The line feed escape character "\r" returns the cursor to the start of the
 		 * current line. Calling print(...) overwrites the existing line and creates the
 		 * illusion of an animation.
 		 */
-		/*System.out.print("\r" + sb + "] " + complete + "%");
+		System.out.print("\r" + sb.toString());
 
 		// Once the meter reaches its max, move to a new line.
-		if (done == total)
-			System.out.println("\n");*/
+		if (index == total)
+			System.out.println();
 	}
-}}
+}

@@ -30,12 +30,11 @@ public class EmbeddingsParser {
 				parseLineAndAddToMap(line);
 				linesProcessed++;
 				if(linesProcessed % 100 == 0  || linesProcessed == totalLines) {
-					int progressPercentage = (int)((linesProcessed * 100) / totalLines);
-					ProgressReporter.printProgress(progressPercentage);
+				    ProgressReporter.printProgress((int) linesProcessed, (int) totalLines);
 				}
 			}
 		}
-		ProgressReporter.printProgress(100);
+		ProgressReporter.printProgress(100, 100);
 		System.out.println();//move to a newline after finishing progress update
 	}
 
