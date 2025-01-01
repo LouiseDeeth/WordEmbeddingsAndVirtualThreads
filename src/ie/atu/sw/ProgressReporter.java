@@ -3,59 +3,34 @@ package ie.atu.sw;
 /**
  * Class for displaying and simulating a progress bar.
  * 
- * The progress bar
+ * <p>The progress meter is designed to show the progress of the task by printing a 
+ * progress bar to the console</p>
  * 
- * <p>
- * Notes:
- * </p>
- *
- * <p>
- * The progress meter is designed to show the progress of the task by printing a
- * progress bar to the console
- * </p>
  * <ul>
- * <li>The progress meter will <strong>NOT work</strong> in the Eclipse console
- * but works on Windows (DOS), Mac, and Linux terminals.</li>
- * <li>The progress bar uses the line feed character (<code>"\r"</code>) to
- * overwrite the current line, creating an animated effect.</li>
- * <li>If the variable size is greater than the terminal width, a new line
- * escape character "\n" will be automatically added and the meter won't work
- * properly.</li>
+ * <li>The progress meter will NOT work in the Eclipse console but works on Windows (DOS), Mac, and Linux terminals.</li>
+ * <li>The progress bar uses the line feed character "\r" to overwrite the current line, creating an animated effect.</li>
  * </ul>
  * 
  */
 public class ProgressReporter {
-
-	public static void simulateProgress() {
-		System.out.print(ConsoleColour.YELLOW); // Change the colour of the console text
-		int size = 100; // The size of the meter. 100 equates to 100%
-		for (int i = 0; i < size; i++) { // The loop equates to a sequence of processing steps
-			printProgress(i + 1, size); // After each (some) steps, update the progress meter
-			try {
-				Thread.sleep(10); // Slows things down so the animation is visible
-			} catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				break;
-			}
-		}
-		System.out.print(ConsoleColour.RESET); // Reset the console color
-	}
 
 	/**
 	 * The print progress method to show progress as words are being parsed in.
 	 * 
 	 * @param index The current progress step
 	 * @param total The total number of steps required to complete the task
+	 * 
+	 * O(n) as loop iterates n times
 	 */
 	public static void printProgress(int index, int total) {
-		if (index > total)
-			return; // Out of range
+		if (index > total) return; // Out of range
+		
 		int size = 50; // Must be less than console width
 		char done = '█'; // Change to whatever you like.
 		char todo = '░'; // Change to whatever you like.
 
-		// Compute basic metrics for the meter
-		int complete = (100 * index) / total; // Calculate percentage
+		// Calculate the percentage of completion
+		int complete = (100 * index) / total; 
 		int completeLen = size * complete / 100;
 
 		/*
