@@ -3,13 +3,13 @@ package ie.atu.sw;
 /**
  * Class for displaying and simulating a progress bar.
  * 
- * <p>The progress meter is designed to show the progress of the task by printing a 
- * progress bar to the console</p>
+ * The progress meter is designed to show the progress of the task by printing a
+ * progress bar to the console
  * 
- * <ul>
- * <li>The progress meter will NOT work in the Eclipse console but works on Windows (DOS), Mac, and Linux terminals.</li>
- * <li>The progress bar uses the line feed character "\r" to overwrite the current line, creating an animated effect.</li>
- * </ul>
+ * The progress meter will <b>NOT</b> work in the Eclipse console but works on
+ * Windows (DOS), Mac, and Linux terminals.
+ * The progress bar uses the line feed character "\r" to overwrite the
+ * current line, creating an animated effect.
  * 
  */
 public class ProgressReporter {
@@ -23,14 +23,15 @@ public class ProgressReporter {
 	 * O(n) as loop iterates n times
 	 */
 	public static void printProgress(int index, int total) {
-		if (index > total) return; // Out of range
-		
+		if (index > total)
+			return; // Out of range
+
 		int size = 50; // Must be less than console width
 		char done = '█'; // Change to whatever you like.
 		char todo = '░'; // Change to whatever you like.
 
 		// Calculate the percentage of completion
-		int complete = (100 * index) / total; 
+		int complete = (100 * index) / total;
 		int completeLen = size * complete / 100;
 
 		/*

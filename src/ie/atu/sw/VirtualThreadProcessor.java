@@ -7,59 +7,48 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.*;
 
+/**
+ * The VirtualThreadProcessor class processes text files using word embeddings.
+ * 
+ * It simplifies text by replacing words with similar ones from a list.
+ * 
+ */
 public class VirtualThreadProcessor {
-	private final Map<String, double[]> embeddingsMap = new ConcurrentHashMap<>();
-	private final List<String> googleWords = new CopyOnWriteArrayList<>();
-	private final List<String> simplifiedLines = new CopyOnWriteArrayList<>();
-	private final AtomicLong processedLines = new AtomicLong();
-	private static final double SIMILARITY_THRESHOLD = 0.4;
+	private final Map<String, double[]> embeddingsMap; // Map for word embeddings
+	private final List<String> googleWords = new CopyOnWriteArrayList<>(); // List of Google 1000 words
+	private final List<String> simplifiedLines = new CopyOnWriteArrayList<>(); // List of simplified lines
+	private final AtomicLong processedLines = new AtomicLong(); // Tracks processed lines
+	private static final double SIMILARITY_THRESHOLD = 0.4; // Threshold for cosine similarity
+
+	/** Constructor that takes EmbeddingsParser
+	 * 
+	 * @param embeddingsMap A map containing word embeddings.
+	 * 
+	 * O(1) constant time
+	 */
+	public VirtualThreadProcessor(Map<String, double[]> embeddingsMap) {
+		// Create a new ConcurrentHashMap with the passed embeddings
+		this.embeddingsMap = new ConcurrentHashMap<>(embeddingsMap);
+	}
 
 	/**
 	 * Increments processed lines counter. 
-	 * O(1)
+	 * 
+	 * O(1) constant time
 	 */
 	private void incrementProcessedLines() {
 		processedLines.incrementAndGet();
 	}
 
 	/**
-	 * Processes the embeddings file. 
-	 */
-	public void processEmbeddingsFile(String embeddingsFilePath) throws IOException {
-		long totalLines = Files.lines(Paths.get(embeddingsFilePath)).count();
-
-		try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-			List<Future<?>> futures = Files.lines(Paths.get(embeddingsFilePath))
-					.<Future<?>>map(line -> executor.submit(() -> {
-						parseEmbeddingLine(line);
-						incrementProcessedLines();
-						if (processedLines.get() % 100 == 0 || processedLines.get() == totalLines) {
-							ProgressReporter.printProgress((int) processedLines.get(), (int) totalLines);
-						}
-					})).toList();
-
-			// Wait for all tasks to complete
-			for (Future<?> future : futures) {
-				try {
-					future.get();
-				} catch (ExecutionException e) {
-					System.err.println("Error processing embeddings: " + e.getCause());
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					throw new IOException("Processing interrupted", e);
-				}
-			}
-		}
-		System.out.println("\nEmbeddings file processed successfully.");
-	}
-
-	/**
-	 * Loads Google 1000 words into a list. O(n): Reads n lines from the file.
+	 * Loads Google 1000 words into a list. 
+	 * 
+	 * O(n) Reads n lines from the file.
 	 */
 	public void loadGoogleWords() throws IOException {
 		try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
 			List<Future<?>> futures = Files.lines(Paths.get("./google-1000.txt")).filter(line -> !line.trim().isEmpty())
-					.<Future<?>>map(line -> executor.submit(() -> googleWords.add(line.trim().toLowerCase()))).toList(); 
+					.<Future<?>>map(line -> executor.submit(() -> googleWords.add(line.trim().toLowerCase()))).toList();
 
 			// Wait for all tasks to complete
 			for (Future<?> future : futures) {
@@ -68,7 +57,7 @@ public class VirtualThreadProcessor {
 				} catch (ExecutionException e) {
 					System.err.println("Error loading Google words: " + e.getCause());
 				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt(); // Restore interrupted status
+					Thread.currentThread().interrupt();
 					throw new IOException("Loading interrupted", e);
 				}
 			}
@@ -77,9 +66,15 @@ public class VirtualThreadProcessor {
 	}
 
 	/**
-	 * Simplifies the text file by replacing words with the most similar ones. 
+	 * Simplifies the text file by replacing words with the most similar ones.
+	 * 
+	 * @param inputPath  The path to the input file.
+	 * @param outputPath The path to the output file.
+	 * 
+	 * O(n) for each
 	 */
 	public void simplifyTextFile(String inputPath, String outputPath) throws IOException {
+		processedLines.set(0); // Reset counter before starting
 		List<String> lines = Files.readAllLines(Paths.get(inputPath));
 		long totalLines = lines.size();
 
@@ -102,25 +97,18 @@ public class VirtualThreadProcessor {
 					throw new IOException("Simplification interrupted", e);
 				}
 			}
+			// Write simplified lines to the output file
 			Files.write(Paths.get(outputPath), simplifiedLines);
 		}
 		System.out.println("\nText file simplified successfully!\n");
 	}
 
 	/**
-	 * Parses a line and populates the embeddings map. 
-	 */
-	private void parseEmbeddingLine(String line) {
-		String[] parts = line.split(",\\s+");
-		if (parts.length > 1) {
-			String word = parts[0].toLowerCase();
-			double[] values = Arrays.stream(parts, 1, parts.length).mapToDouble(Double::parseDouble).toArray();
-			embeddingsMap.put(word, values);
-		}
-	}
-
-	/**
-	 * Simplifies a line by replacing words. 
+	 * Simplifies a line by replacing words.
+	 * 
+	 * @param line The line to simplify.
+	 * 
+	 * O(n) number of words in a line
 	 */
 	private void simplifyLine(String line) {
 		String[] words = line.split("\\s+");
@@ -129,7 +117,12 @@ public class VirtualThreadProcessor {
 	}
 
 	/**
-	 * Finds the most similar word using cosine similarity. 
+	 * Finds the most similar word using cosine similarity.
+	 * 
+	 * @param word The word to find a similar match for.
+	 * @return The most similar word or the original word if no match is found.
+	 * 
+	 * O(n) number of words in Google list
 	 */
 	private String findMostSimilarWord(String word) {
 		if (word == null || word.trim().isEmpty()) {
@@ -150,13 +143,14 @@ public class VirtualThreadProcessor {
 			// System.out.println("\nDEBUG: No embedding found for word: " + cleanWord);
 			return originalWord;
 		}
+		// Find the most similar word from Google words
 		List<Map.Entry<String, Double>> similarities = googleWords.stream()
 				.filter(googleWord -> embeddingsMap.containsKey(googleWord))
 				.map(googleWord -> Map.entry(googleWord,
 						cosineSimilarity(wordEmbedding, embeddingsMap.get(googleWord))))
 				.sorted(Map.Entry.<String, Double>comparingByValue().reversed()).limit(5).collect(Collectors.toList());
 
-		// Debug: Print top 5 most similar words and their scores		
+		// Debug: Print top 5 most similar words and their scores
 		/*
 		 * System.out.println("\nDEBUG: Top 5 similar words for '" + cleanWord + "':");
 		 * similarities.forEach(entry -> System.out.printf("%s: %.4f%n", entry.getKey(),
@@ -177,12 +171,26 @@ public class VirtualThreadProcessor {
 		return Character.isUpperCase(originalWord.charAt(0)) ? capitalize(bestMatch) : bestMatch;
 	}
 
+	/**
+	 * Capitalizes the first letter of a string.
+	 * 
+	 * @param str The string to capitalize.
+	 * @return The capitalized string.
+	 * 
+	 * O(1) constant time
+	 */
 	private String capitalize(String str) {
 		return str.substring(0, 1).toUpperCase() + str.substring(1);
 	}
 
 	/**
-	 * Cosine similarity. 
+	 * Computes the cosine similarity between two vectors.
+	 * 
+	 * @param vectorA The first vector.
+	 * @param vectorB The second vector.
+	 * @return The cosine similarity between the vectors.
+	 * 
+	 * O(n) 
 	 */
 	private double cosineSimilarity(double[] vectorA, double[] vectorB) {
 		double dotProduct = 0.0;

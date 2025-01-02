@@ -4,20 +4,31 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.io.*;
 
+/**
+ * The EmbeddingsParser class handles parsing word embeddings from a file 
+ * and storing them in a ConcurrentHashMap for thread-safe operations.
+ */
 public class EmbeddingsParser {
 
 	// The HashMap to store the word and its embeddings
 	private Map<String, double[]> embeddingsMap;
 
+	/**
+	 * Constructor initializes an empty ConcurrentHashMap to store embeddings.
+	 * 
+	 * O(1) constant time
+	 */
 	public EmbeddingsParser() {
 		this.embeddingsMap = new ConcurrentHashMap<>();
 	}
 
 	/**
-	 * Load embeddings method to parse embeddings in and print progress
+	 * Load embeddings from a file into the embeddings map and print progress
 	 * 
 	 * @param filePath
 	 * @throws IOException
+	 * 
+	 *  O(n) n is the number of lines in the file
 	 */
 	public void loadEmbeddings(String filePath) throws IOException {
 		File file = new File(filePath);
@@ -40,9 +51,11 @@ public class EmbeddingsParser {
 	}
 
 	/**
-	 * Parsing the line and adding to map
+	 * Parsing the line and adding to map the word and its embeddings
 	 * 
-	 * @param line O(n) parses over and reads in n number of lines
+	 * @param line The line to parse
+	 * 
+	 * O(n) parses over and reads in n number of lines
 	 */
 	private void parseLineAndAddToMap(String line) {
 		// Split line into parts
@@ -56,9 +69,18 @@ public class EmbeddingsParser {
 		for (int i = 1; i < parts.length; i++) {
 			values[i - 1] = Double.parseDouble(parts[i].trim());
 		}
+		// Store the word and its embeddings in the map (case-insensitive)
 		embeddingsMap.put(word.toLowerCase(), values);// to ignore the case entered
 	}
 
+	/**
+	 * Counts the number of lines in a file.
+	 * 
+	 * @param file the file to count lines in
+	 * @return the total number of lines in the file
+	 * 
+	 * O(n),where n is the number of lines in the file
+	 */
 	private long countLines(File file) throws IOException {
 		try (var lineIterator = new LineNumberReader(new FileReader(file))) {
 			lineIterator.skip(Long.MAX_VALUE);
@@ -67,10 +89,12 @@ public class EmbeddingsParser {
 	}
 
 	/**
-	 * Get embedding
+	 * Get embedding for a word
 	 * 
-	 * @param word
-	 * @return word from the HashMap O(1) retrieving from a HashMap is constant time
+	 * @param word the word whose embedding is to be retrieved
+	 * @return word from the HashMap 
+	 * 
+	 * O(1) retrieving from a HashMap is constant time
 	 */
 	public double[] getEmbedding(String word) {
 		if (word == null || word.trim().isEmpty()) {
@@ -83,9 +107,11 @@ public class EmbeddingsParser {
 	 * Provide access to the embeddings map
 	 * 
 	 * @return embeddingsMap
+	 * 
+	 * 0(1) constant time
 	 */
 	public Map<String, double[]> getEmbeddingsMap() {
-	    return Collections.unmodifiableMap(embeddingsMap);
+		return Collections.unmodifiableMap(embeddingsMap);
 	}
 
 }
